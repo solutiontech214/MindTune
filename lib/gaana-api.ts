@@ -218,8 +218,8 @@ class GaanaAPI {
       album: item.album.name,
       duration: Math.floor(item.duration_ms / 1000),
       artwork: item.album.images[0]?.url || "/placeholder.svg?height=300&width=300",
-      stream_url: item.preview_url || reliableAudioSources.meditation_1,
-      preview_url: item.preview_url,
+      stream_url: reliableAudioSources.meditation_1,
+      preview_url: reliableAudioSources.meditation_1,
       external_urls: {
         spotify: item.external_urls.spotify
       },
