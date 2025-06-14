@@ -114,7 +114,32 @@ class GaanaAPI {
   }
 
   // Get track stream URL (uses preview URLs from Spotify)
-  async getStreamUrl(trackId: string): Promise<string> {
+  
+  parseSpotifyResults(data: any): GaanaSearchResult {
+    const tracks: GaanaTrack[] = (data.tracks.items || []).map((item: any, index: number) => {
+      const fallbackDemoKey = Object.keys(reliableAudioSources)[index % Object.keys(reliableAudioSources).length];
+
+      return {
+        track_id: item.id,
+        title: item.name,
+        artist: item.artists?.[0]?.name || "Unknown Artist",
+        album: item.album?.name || "Unknown Album",
+        duration: Math.floor(item.duration_ms / 1000),
+        artwork: item.album?.images?.[0]?.url || "https://via.placeholder.com/300",
+        stream_url: item.preview_url || reliableAudioSources[fallbackDemoKey],
+        preview_url: item.preview_url || reliableAudioSources[fallbackDemoKey],
+        external_urls: {
+          spotify: item.external_urls?.spotify,
+        },
+        genre: "calm",
+        language: "instrumental"
+      };
+    });
+
+    return { tracks };
+  }
+
+async getStreamUrl(trackId: string): Promise<string> {
     try {
       // For demo purposes, return working audio URLs
       const demoStreams: { [key: string]: string } = {
