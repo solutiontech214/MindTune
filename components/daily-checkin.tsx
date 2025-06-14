@@ -65,7 +65,7 @@ export function DailyCheckin() {
   const [selectedActivities, setSelectedActivities] = useState<string[]>([])
   const [goalsAchieved, setGoalsAchieved] = useState([1])
 
-  // Load today's check-in on mount
+  
   useEffect(() => {
     const loadTodayCheckin = async () => {
       try {
