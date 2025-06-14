@@ -2,9 +2,6 @@ import bcrypt from "bcryptjs"
 import { sql } from "./database"
 import type { User, CreateUserData } from "./database"
 
-// In-memory user store for development mode
-const developmentUsers = new Map<string, User>()
-
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12
@@ -22,34 +19,8 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 export async function createUser(userData: CreateUserData): Promise<User | null> {
   try {
     if (!sql) {
-      console.warn("Database connection not available, using mock user creation for development")
-      
-      // Check if user already exists in development store
-      if (developmentUsers.has(userData.email.toLowerCase())) {
-        console.log("User already exists in development store")
-        return null
-      }
-      
-      // Mock user creation for development
-      const mockUser: User = {
-        id: Date.now(), // Use timestamp as mock ID
-        first_name: userData.firstName,
-        last_name: userData.lastName,
-        email: userData.email.toLowerCase(),
-        password_hash: await hashPassword(userData.password),
-        age_range: userData.ageRange || null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        is_active: true,
-        email_verified: false,
-        subscribe_newsletter: userData.subscribeNewsletter || false
-      }
-      
-      // Store user in development store
-      developmentUsers.set(userData.email.toLowerCase(), mockUser)
-      
-      console.log("Mock user created successfully:", mockUser.email)
-      return mockUser
+      console.error("Database connection not available")
+      return null
     }
 
     const hashedPassword = await hashPassword(userData.password)
@@ -84,16 +55,7 @@ export async function createUser(userData: CreateUserData): Promise<User | null>
 export async function findUserByEmail(email: string): Promise<User | null> {
   try {
     if (!sql) {
-      console.warn("Database connection not available, using mock user lookup for development")
-      
-      // Check development store for the user
-      const user = developmentUsers.get(email.toLowerCase())
-      if (user) {
-        console.log("Found user in development store:", email)
-        return user
-      }
-      
-      console.log("User not found in development store:", email)
+      console.error("Database connection not available")
       return null
     }
 
@@ -141,12 +103,8 @@ export function generateSessionToken(): string {
 export async function createUserSession(userId: number): Promise<string | null> {
   try {
     if (!sql) {
-      console.warn("Database connection not available, using mock session creation for development")
-      
-      // Mock session creation for development
-      const sessionToken = generateSessionToken()
-      console.log("Mock session created successfully for user:", userId)
-      return sessionToken
+      console.error("Database connection not available")
+      return null
     }
 
     const sessionToken = generateSessionToken()

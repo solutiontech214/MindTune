@@ -15,11 +15,7 @@ import { useRouter } from "next/navigation"
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
-  const [state, formAction, isPending] = useActionState<SignInFormState, FormData>(signInAction, {
-    errors: undefined,
-    success: false,
-    message: undefined
-  })
+  const [state, formAction, isPending] = useActionState<SignInFormState, FormData>(signInAction, {})
   const router = useRouter()
 
   // Redirect on successful signin

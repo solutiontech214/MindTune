@@ -18,11 +18,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [ageRange, setAgeRange] = useState("")
-  const [state, formAction, isPending] = useActionState<SignUpFormState, FormData>(signUpAction, {
-    errors: undefined,
-    success: false,
-    message: undefined
-  })
+  const [state, formAction, isPending] = useActionState<SignUpFormState, FormData>(signUpAction, {})
   const router = useRouter()
 
   // Redirect on successful signup

@@ -26,35 +26,13 @@ import { formatDuration } from "@/lib/music-recommendation-engine"
 import type { ReliableAudioTrack } from "@/lib/reliable-audio-sources"
 
 interface GaanaMusicPlayerProps {
-  currentTrack: GaanaTrack | null
-  playlist: GaanaTrack[]
+  currentTrack: ReliableAudioTrack | null
+  playlist: ReliableAudioTrack[]
   isPlaying: boolean
   onPlayPause: () => void
   onNext: () => void
   onPrevious: () => void
   onTrackEnd: () => void
-}
-
-// Convert GaanaTrack to ReliableAudioTrack format
-function convertToReliableTrack(gaanaTrack: GaanaTrack): ReliableAudioTrack {
-  return {
-    track_id: gaanaTrack.track_id,
-    title: gaanaTrack.title,
-    artist: gaanaTrack.artist,
-    genre: gaanaTrack.genre,
-    language: gaanaTrack.language,
-    duration: gaanaTrack.duration,
-    artwork: gaanaTrack.artwork,
-    sources: [{
-      url: gaanaTrack.stream_url,
-      format: "wav",
-      quality: "high",
-      description: `Generated audio for ${gaanaTrack.title}`,
-      generated: true
-    }],
-    mood: "calm",
-    category: gaanaTrack.genre.toLowerCase()
-  }
 }
 
 export function GaanaMusicPlayer({
@@ -79,44 +57,27 @@ export function GaanaMusicPlayer({
   const [audioError, setAudioError] = useState<string | null>(null)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
   const [isSourceTesting, setIsSourceTesting] = useState(false)
-  const [track, setTrack] = useState<ReliableAudioTrack | null>(null)
-  const [currentSource, setCurrentSource] = useState<ReliableAudioTrack["sources"][0] | null>(null)
 
   // Get current audio source
  // ...existing code...
-
-
-  // Convert currentTrack to the expected format and set the first audio source
-  useEffect(() => {
-    if (currentTrack) {
-      const convertedTrack = convertToReliableTrack(currentTrack)
-      setTrack(convertedTrack)
-      setCurrentSource(convertedTrack.sources[0])
-      console.log("🎵 Track loaded:", convertedTrack.title, "| Source:", convertedTrack.sources[0].url)
-    } else {
-      setTrack(null)
-      setCurrentSource(null)
-    }
-  }, [currentTrack])
-
-const currentSource1 =
-  track && Array.isArray(track.sources) && track.sources.length > 0 && currentSourceIndex >= 0 && currentSourceIndex < track.sources.length
-    ? track.sources[currentSourceIndex]
+const currentSource =
+  currentTrack && Array.isArray(currentTrack.sources) && currentTrack.sources.length > 0 && currentSourceIndex >= 0 && currentSourceIndex < currentTrack.sources.length
+    ? currentTrack.sources[currentSourceIndex]
     : undefined
 
 
   // Load audio source when track or source index changes
   useEffect(() => {
-    if (track && currentSource1 && audioRef.current) {
+    if (currentTrack && currentSource && audioRef.current) {
       setIsLoading(true)
       setAudioError(null)
 
-      audioRef.current.src = currentSource1.url
+      audioRef.current.src = currentSource.url
       audioRef.current.load()
       setCurrentTime(0)
       setDuration(0)
     }
-  }, [track, currentSource1])
+  }, [currentTrack, currentSource])
 
   // Handle play/pause with proper promise management
   const handlePlayPause = useCallback(async () => {
@@ -141,7 +102,7 @@ const currentSource1 =
         const fallbackUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
         audioRef.current.src = fallbackUrl
         audioRef.current.load()
-
+        
         try {
           await audioRef.current.play()
           setAudioError(null)
@@ -245,7 +206,7 @@ const currentSource1 =
       console.error("Audio error:", {
         code: error.code,
         message: error.message,
-        track: track?.title,
+        track: currentTrack?.title,
         source: currentSource?.description,
         sourceIndex: currentSourceIndex,
       })
@@ -253,8 +214,8 @@ const currentSource1 =
       // Try next source automatically for format/decode errors
       if (
         (error.code === MediaError.MEDIA_ERR_DECODE || error.code === MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED) &&
-        track &&
-        currentSourceIndex < track.sources.length - 1
+        currentTrack &&
+        currentSourceIndex < currentTrack.sources.length - 1
       ) {
         console.log(`Trying next source: ${currentSourceIndex + 1}`)
         setCurrentSourceIndex((prev) => prev + 1)
@@ -275,7 +236,7 @@ const currentSource1 =
 
   // Try next audio source
   const handleNextSource = () => {
-    if (track && currentSourceIndex < track.sources.length - 1) {
+    if (currentTrack && currentSourceIndex < currentTrack.sources.length - 1) {
       setCurrentSourceIndex((prev) => prev + 1)
       setAudioError(null)
     } else {
@@ -291,7 +252,7 @@ const currentSource1 =
 
     setIsSourceTesting(true)
     console.log("Testing audio source:", currentSource.description, currentSource.url)
-
+    
     try {
       // Create a test audio element
       const testAudio = new Audio()
@@ -322,7 +283,7 @@ const currentSource1 =
       // Play for 2 seconds
       console.log("Starting test playback...")
       await testAudio.play()
-
+      
       setTimeout(() => {
         testAudio.pause()
         testAudio.src = ""
@@ -341,13 +302,13 @@ const currentSource1 =
     }
   }
 
-  if (!track) {
+  if (!currentTrack) {
     return null
   }
 
   return (
     <Card className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 backdrop-blur-md shadow-lg">
-
+     
 <CardContent className="p-4">
 
   {/* Only render audio if currentSource exists */}
@@ -369,7 +330,7 @@ const currentSource1 =
     />
   )}
 
-
+      
 
 
         {/* Error Alert */}
@@ -380,7 +341,7 @@ const currentSource1 =
               <span>{audioError}</span>
               <div className="flex items-center space-x-2 ml-2">
                 <span className="text-xs text-red-600">
-                  Source {currentSourceIndex + 1}/{track.sources.length}
+                  Source {currentSourceIndex + 1}/{currentTrack.sources.length}
                 </span>
                 <Button
                   variant="outline"
@@ -401,8 +362,8 @@ const currentSource1 =
           <div className="flex items-center space-x-3 min-w-0 flex-1">
             <div className="relative w-12 h-12 flex-shrink-0">
               <img
-                src={track.artwork || "/placeholder.svg?height=48&width=48"}
-                alt={track.title}
+                src={currentTrack.artwork || "/placeholder.svg?height=48&width=48"}
+                alt={currentTrack.title}
                 className="w-full h-full rounded-lg object-cover"
                 onError={(e) => {
                   e.currentTarget.src = "/placeholder.svg?height=48&width=48"
@@ -415,14 +376,14 @@ const currentSource1 =
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h4 className="font-medium text-gray-900 truncate">{track.title}</h4>
-              <p className="text-sm text-gray-600 truncate">{track.artist}</p>
+              <h4 className="font-medium text-gray-900 truncate">{currentTrack.title}</h4>
+              <p className="text-sm text-gray-600 truncate">{currentTrack.artist}</p>
               <div className="flex items-center space-x-2 mt-1">
                 <Badge variant="secondary" className="text-xs">
-                  {track.genre}
+                  {currentTrack.genre}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  {track.language}
+                  {currentTrack.language}
                 </Badge>
                 {currentSource?.generated && (
                   <Badge variant="outline" className="text-xs text-green-600">
@@ -486,13 +447,13 @@ const currentSource1 =
               <span className="text-xs text-gray-500 w-10">{formatDuration(Math.floor(currentTime))}</span>
               <Slider
                 value={[currentTime]}
-                max={duration || track.duration || 100}
+                max={duration || currentTrack.duration || 100}
                 step={1}
                 onValueChange={handleSeek}
                 className="flex-1"
                 disabled={isLoading || !!audioError}
               />
-              <span className="text-xs text-gray-500 w-10">{formatDuration(duration || track.duration)}</span>
+              <span className="text-xs text-gray-500 w-10">{formatDuration(duration || currentTrack.duration)}</span>
             </div>
           </div>
 
