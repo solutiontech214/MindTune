@@ -127,8 +127,12 @@ export async function signUpAction(prevState: SignUpFormState, formData: FormDat
       }
     }
 
-    // Set session cookie
+    // Set session cookie and store mock user for development
     await setSessionCookie(sessionToken)
+    
+    // Import setMockSessionUser for development mode
+    const { setMockSessionUser } = await import("@/lib/session")
+    setMockSessionUser(newUser)
 
     console.log("Sign up completed successfully")
 
