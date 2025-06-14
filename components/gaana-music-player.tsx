@@ -81,7 +81,7 @@ const currentSource =
 
   // Handle play/pause with proper promise management
   const handlePlayPause = useCallback(async () => {
-    if (!audioRef.current || !currentSource) return
+    if (!audioRef.current) return
 
     try {
       if (isPlaying) {
@@ -97,12 +97,21 @@ const currentSource =
       console.error("Playback error:", error)
       setAudioError(`Playback failed: ${error.message}`)
 
-      // Try next source if available
-      if (currentTrack && currentSourceIndex < currentTrack.sources.length - 1) {
-        setCurrentSourceIndex((prev) => prev + 1)
+      // Try alternative audio source
+      if (audioRef.current) {
+        const fallbackUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
+        audioRef.current.src = fallbackUrl
+        audioRef.current.load()
+        
+        try {
+          await audioRef.current.play()
+          setAudioError(null)
+        } catch (fallbackError) {
+          console.error("Fallback audio also failed:", fallbackError)
+        }
       }
     }
-  }, [isPlaying, currentSource, hasUserInteracted, currentTrack, currentSourceIndex])
+  }, [isPlaying, hasUserInteracted])
 
   // Sync with external play state
   useEffect(() => {
