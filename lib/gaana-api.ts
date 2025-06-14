@@ -35,8 +35,8 @@ export interface GaanaPlaylist {
 }
 
 class GaanaAPI {
-  private spotifyClientId = "your_spotify_client_id" // Replace with actual client ID
-  private spotifyClientSecret = "your_spotify_client_secret" // Replace with actual secret
+  private spotifyClientId ="021525f6033a4000930ce7cfda86e283" // Replace with actual client ID
+  private spotifyClientSecret = "28af6887f55845e98d20167cb2aaabc5" // Replace with actual secret
   private spotifyAccessToken: string | null = null
   private tokenExpiry: number = 0
 
