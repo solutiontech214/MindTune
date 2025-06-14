@@ -130,9 +130,9 @@ export async function signUpAction(prevState: SignUpFormState, formData: FormDat
     // Set session cookie and store mock user for development
     await setSessionCookie(sessionToken)
     
-    // Import setMockSessionUser for development mode
-    const { setMockSessionUser } = await import("@/lib/session")
-    setMockSessionUser(newUser)
+    // Import storeMockSession for development mode
+    const { storeMockSession } = await import("@/lib/session")
+    storeMockSession(sessionToken, newUser)
 
     console.log("Sign up completed successfully")
 
@@ -198,6 +198,10 @@ export async function signInAction(prevState: SignInFormState, formData: FormDat
 
     // Set session cookie
     await setSessionCookie(sessionToken)
+    
+    // Store mock session for development mode
+    const { storeMockSession } = await import("@/lib/session")
+    storeMockSession(sessionToken, user)
 
     console.log("Sign in completed successfully")
 
