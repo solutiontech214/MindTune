@@ -123,6 +123,49 @@ class GaanaAPI {
     }
   }
 
+  // Get trending tracks
+  async getTrendingTracks(limit = 20): Promise<GaanaTrack[]> {
+    try {
+      // Always use demo tracks since Spotify API requires authentication
+      console.log("Loading trending tracks from demo data")
+      const demoResult = this.getDemoTracks('trending', limit)
+      return demoResult.tracks
+    } catch (error) {
+      console.error("Error getting trending tracks:", error)
+      // Return a subset of demo tracks as fallback
+      return [
+        {
+          track_id: "trending_1",
+          title: "Kun Faya Kun",
+          artist: "A.R. Rahman",
+          album: "Rockstar",
+          duration: 428,
+          artwork: "https://picsum.photos/300/300?random=11",
+          stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
+          preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
+          external_urls: {},
+          genre: "Sufi",
+          language: "Hindi",
+          popularity: 95
+        },
+        {
+          track_id: "trending_2",
+          title: "Om Meditation",
+          artist: "Spiritual Voices",
+          album: "Sacred Sounds",
+          duration: 480,
+          artwork: "https://picsum.photos/300/300?random=12",
+          stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          external_urls: {},
+          genre: "Meditation",
+          language: "Sanskrit",
+          popularity: 85
+        }
+      ]
+    }
+  }
+
   // Get curated playlists for different moods
   async getMoodPlaylist(mood: "calm" | "energetic" | "devotional" | "classical"): Promise<GaanaPlaylist> {
     const moodQueries = {
@@ -151,52 +194,6 @@ class GaanaAPI {
         tracks: [],
         artwork: "/placeholder.svg?height=300&width=300",
       }
-    }
-  }
-
-  // Get trending tracks
-  async getTrendingTracks(limit = 20): Promise<GaanaTrack[]> {
-    try {
-      const token = await this.getSpotifyToken()
-      
-      if (token === 'demo_token') {
-        const demoResult = this.getDemoTracks('trending', limit)
-        return demoResult.tracks
-      }
-
-      // Get trending tracks from Spotify (India charts)
-      const response = await fetch('https://api.spotify.com/v1/playlists/37i9dQZEVXbLZ52XmnySJg/tracks?limit=' + limit, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to get trending tracks')
-      }
-
-      const data = await response.json()
-      return data.items.map((item: any) => ({
-        track_id: item.track.id,
-        title: item.track.name,
-        artist: item.track.artists.map((artist: any) => artist.name).join(', '),
-        album: item.track.album.name,
-        duration: Math.floor(item.track.duration_ms / 1000),
-        artwork: item.track.album.images[0]?.url || "/placeholder.svg?height=300&width=300",
-        stream_url: item.track.preview_url || 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-        preview_url: item.track.preview_url,
-        external_urls: {
-          spotify: item.track.external_urls.spotify
-        },
-        genre: "Bollywood",
-        language: "Hindi",
-        release_date: item.track.album.release_date,
-        popularity: item.track.popularity
-      }))
-    } catch (error) {
-      console.error("Error getting trending tracks:", error)
-      const demoResult = this.getDemoTracks('trending', limit)
-      return demoResult.tracks
     }
   }
 
@@ -376,37 +373,7 @@ class GaanaAPI {
     }
   }
 
-  // Get curated playlists for different moods
-  async getMoodPlaylist(mood: "calm" | "energetic" | "devotional" | "classical"): Promise<GaanaPlaylist> {
-    const moodQueries = {
-      calm: "meditation peaceful calm instrumental",
-      energetic: "bollywood dance upbeat energetic",
-      devotional: "bhajan devotional spiritual mantra",
-      classical: "classical indian raga instrumental",
-    }
-
-    try {
-      const searchResult = await this.searchTracks(moodQueries[mood], 15)
-
-      return {
-        playlist_id: `mood_${mood}`,
-        title: `${mood.charAt(0).toUpperCase() + mood.slice(1)} Music`,
-        description: `Curated ${mood} music for your wellness journey`,
-        tracks: searchResult.tracks,
-        artwork: searchResult.tracks[0]?.artwork || "/placeholder.svg?height=300&width=300",
-      }
-    } catch (error) {
-      console.error("Error getting mood playlist:", error)
-      return {
-        playlist_id: `mood_${mood}`,
-        title: `${mood} Music`,
-        description: "Music playlist",
-        tracks: [],
-        artwork: "/placeholder.svg?height=300&width=300",
-      }
-    }
   }
-}
 
 // Export singleton instance
 export const gaanaAPI = new GaanaAPI()
