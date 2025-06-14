@@ -55,7 +55,7 @@ class GaanaAPI {
   // Get Spotify access token
   private async getSpotifyToken(): Promise<string> {
     if (this.spotifyAccessToken && Date.now() < this.tokenExpiry) {
-      return this.spotifyAccessToken
+      return this.spotifyAccessToken ?? ''
     }
 
     try {
@@ -76,7 +76,7 @@ class GaanaAPI {
       this.spotifyAccessToken = data.access_token
       this.tokenExpiry = Date.now() + (data.expires_in * 1000)
 
-      return this.spotifyAccessToken
+      return this.spotifyAccessToken ?? ''
     } catch (error) {
       console.error('Error getting Spotify token:', error)
       // Fallback to demo mode with working audio
@@ -85,30 +85,32 @@ class GaanaAPI {
   }
 
   // Search for tracks using Spotify API
-  async searchTracks(query: string, mood: string, limit = 20): Promise<GaanaSearchResult> {
-  try {
-    const token = await this.getSpotifyToken()
+  async searchTracks(query: string, limit = 20): Promise<GaanaSearchResult> {
+    try {
+      const token = await this.getSpotifyToken()
 
-    if (token === 'demo_token') {
+      if (token === 'demo_token') {
+        return this.getDemoTracks(query, limit)
+      }
+
+      const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}&market=IN`
+
+      const response = await fetch(searchUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Spotify API request failed')
+      }
+
+      const data = await response.json()
+      return this.parseSpotifyResults(data)
+    } catch (error) {
+      console.error("Error searching tracks:", error)
       return this.getDemoTracks(query, limit)
     }
-
-    const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}&market=IN`
-
-    const response = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error('Spotify API request failed')
-    }
-
-    const data = await response.json()
-    return this.parseSpotifyResults(data, mood)
-  } 
-} 
   }
 
   // Get track stream URL (uses preview URLs from Spotify)
@@ -208,17 +210,15 @@ class GaanaAPI {
   }
 
   // Parse Spotify API results
-  private parseSpotifyResults(data: any, mood: string): GaanaSearchResult {
-    const tracks = data.tracks.items
-  .filter((item: any) => item.preview_url)
-  .map((item: any) => ({
+  private parseSpotifyResults(data: any): GaanaSearchResult {
+    const tracks = data.tracks.items.map((item: any) => ({
       track_id: item.id,
       title: item.name,
       artist: item.artists.map((artist: any) => artist.name).join(', '),
       album: item.album.name,
       duration: Math.floor(item.duration_ms / 1000),
       artwork: item.album.images[0]?.url || "/placeholder.svg?height=300&width=300",
-      stream_url: item.preview_url || this.getMoodFallbackAudio(mood),
+      stream_url: item.preview_url || reliableAudioSources.meditation_1,
       preview_url: item.preview_url,
       external_urls: {
         spotify: item.external_urls.spotify
@@ -237,20 +237,7 @@ class GaanaAPI {
   }
 
   // Demo tracks with working audio sources
-  
-  private getMoodFallbackAudio(mood: string): string {
-    const fallbackAudios = {
-      calm: reliableAudioSources.calm1,
-      energetic: reliableAudioSources.energize1,
-      devotional: reliableAudioSources.devotional1,
-      classical: reliableAudioSources.classical1,
-      default: reliableAudioSources.meditation_1
-    }
-    return fallbackAudios[mood] || fallbackAudios.default
-  }
-
-
-private getDemoTracks(query: string, limit: number): GaanaSearchResult {
+  private getDemoTracks(query: string, limit: number): GaanaSearchResult {
     const allDemoTracks = [
       {
         track_id: "meditation_1",
