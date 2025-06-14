@@ -10,23 +10,28 @@ export class AudioGenerator {
     // WAV header
     this.writeWAVHeader(view, numSamples)
 
-    // Generate bell sound with harmonics
+    // Generate bell sound with harmonics and gentle volume
     for (let i = 0; i < numSamples; i++) {
       const time = i / this.sampleRate
       let sample = 0
 
-      // Fundamental frequency (440 Hz) + harmonics
-      sample += Math.sin(2 * Math.PI * 440 * time) * 0.5
-      sample += Math.sin(2 * Math.PI * 880 * time) * 0.3
-      sample += Math.sin(2 * Math.PI * 1320 * time) * 0.2
+      // Fundamental frequency (440 Hz) + harmonics with reduced volume
+      sample += Math.sin(2 * Math.PI * 440 * time) * 0.3
+      sample += Math.sin(2 * Math.PI * 880 * time) * 0.2
+      sample += Math.sin(2 * Math.PI * 1320 * time) * 0.1
 
-      // Apply exponential decay envelope
-      const envelope = Math.exp(-time * 2)
+      // Apply exponential decay envelope with longer sustain
+      const envelope = Math.exp(-time * 1.5)
       sample *= envelope
 
-      // Convert to 16-bit PCM
-      const pcmSample = Math.max(-1, Math.min(1, sample)) * 32767
-      view.setInt16(44 + i * 2, pcmSample, true)
+      // Add gentle fade in for first 0.1 seconds
+      if (time < 0.1) {
+        sample *= time / 0.1
+      }
+
+      // Convert to 16-bit PCM with proper clamping
+      const pcmSample = Math.max(-32767, Math.min(32767, sample * 32767))
+      view.setInt16(44 + i * 2, Math.floor(pcmSample), true)
     }
 
     const blob = new Blob([buffer], { type: "audio/wav" })
@@ -40,27 +45,31 @@ export class AudioGenerator {
 
     this.writeWAVHeader(view, numSamples)
 
-    // Generate ambient sound with multiple sine waves
+    // Generate ambient sound with multiple sine waves and better mixing
     for (let i = 0; i < numSamples; i++) {
       const time = i / this.sampleRate
       let sample = 0
 
-      // Multiple frequency layers for ambient effect
-      sample += Math.sin(2 * Math.PI * 220 * time) * 0.3
-      sample += Math.sin(2 * Math.PI * 330 * time) * 0.2
-      sample += Math.sin(2 * Math.PI * 110 * time) * 0.4
-      sample += Math.sin(2 * Math.PI * 165 * time) * 0.1
+      // Multiple frequency layers for ambient effect with reduced volume
+      sample += Math.sin(2 * Math.PI * 220 * time) * 0.15
+      sample += Math.sin(2 * Math.PI * 330 * time) * 0.12
+      sample += Math.sin(2 * Math.PI * 110 * time) * 0.2
+      sample += Math.sin(2 * Math.PI * 165 * time) * 0.08
 
-      // Add some noise for texture
-      sample += (Math.random() - 0.5) * 0.05
+      // Add subtle low-frequency oscillation
+      sample += Math.sin(2 * Math.PI * 55 * time) * 0.1
 
-      // Gentle fade in/out
-      const fadeTime = Math.min(time, duration - time, 2)
-      const fadeEnvelope = Math.min(1, fadeTime / 2)
+      // Add very gentle noise for texture
+      sample += (Math.random() - 0.5) * 0.02
+
+      // Gentle fade in/out with better envelope
+      const fadeTime = Math.min(time, duration - time, 3)
+      const fadeEnvelope = Math.min(1, fadeTime / 3)
       sample *= fadeEnvelope
 
-      const pcmSample = Math.max(-1, Math.min(1, sample)) * 32767
-      view.setInt16(44 + i * 2, pcmSample, true)
+      // Convert to 16-bit PCM with proper clamping
+      const pcmSample = Math.max(-32767, Math.min(32767, sample * 32767))
+      view.setInt16(44 + i * 2, Math.floor(pcmSample), true)
     }
 
     const blob = new Blob([buffer], { type: "audio/wav" })
@@ -74,25 +83,37 @@ export class AudioGenerator {
 
     this.writeWAVHeader(view, numSamples)
 
-    // Generate nature-like sounds (wind, birds)
+    let birdChirpPhase = 0
+    let windPhase = 0
+
+    // Generate nature-like sounds (wind, birds) with better control
     for (let i = 0; i < numSamples; i++) {
       const time = i / this.sampleRate
       let sample = 0
 
-      // Wind-like noise
-      sample += (Math.random() - 0.5) * 0.3
+      // Gentle wind-like noise with filtering
+      const windNoise = (Math.random() - 0.5) * 0.15
+      windPhase += windNoise * 0.1
+      sample += windPhase * 0.8
 
-      // Bird-like chirps (random frequency modulation)
-      if (Math.random() < 0.001) {
-        const chirpFreq = 800 + Math.random() * 1200
-        sample += Math.sin(2 * Math.PI * chirpFreq * time) * 0.2
+      // Periodic bird-like chirps with more natural timing
+      if (Math.random() < 0.0005) {
+        const chirpFreq = 1000 + Math.random() * 800
+        birdChirpPhase = chirpFreq
+      }
+      
+      if (birdChirpPhase > 0) {
+        sample += Math.sin(2 * Math.PI * birdChirpPhase * time) * 0.15 * Math.exp(-time * 3)
+        birdChirpPhase *= 0.999 // Gradually reduce chirp frequency
       }
 
-      // Low frequency rumble
-      sample += Math.sin(2 * Math.PI * 60 * time) * 0.1
+      // Very low frequency nature ambience
+      sample += Math.sin(2 * Math.PI * 40 * time) * 0.05
+      sample += Math.sin(2 * Math.PI * 80 * time) * 0.03
 
-      const pcmSample = Math.max(-1, Math.min(1, sample)) * 32767
-      view.setInt16(44 + i * 2, pcmSample, true)
+      // Convert to 16-bit PCM with proper clamping
+      const pcmSample = Math.max(-32767, Math.min(32767, sample * 32767))
+      view.setInt16(44 + i * 2, Math.floor(pcmSample), true)
     }
 
     const blob = new Blob([buffer], { type: "audio/wav" })
@@ -109,6 +130,37 @@ export class AudioGenerator {
     // Fill with silence (zeros)
     for (let i = 0; i < numSamples; i++) {
       view.setInt16(44 + i * 2, 0, true)
+    }
+
+    const blob = new Blob([buffer], { type: "audio/wav" })
+    return URL.createObjectURL(blob)
+  }
+
+  generateTestTone(duration: number, frequency: number = 440): string {
+    const numSamples = Math.floor(this.sampleRate * duration)
+    const buffer = new ArrayBuffer(44 + numSamples * 2)
+    const view = new DataView(buffer)
+
+    this.writeWAVHeader(view, numSamples)
+
+    // Generate simple sine wave tone
+    for (let i = 0; i < numSamples; i++) {
+      const time = i / this.sampleRate
+      
+      // Simple sine wave with gentle volume
+      let sample = Math.sin(2 * Math.PI * frequency * time) * 0.3
+
+      // Add fade in/out to prevent clicks
+      const fadeTime = 0.1 // 100ms fade
+      if (time < fadeTime) {
+        sample *= time / fadeTime
+      } else if (time > duration - fadeTime) {
+        sample *= (duration - time) / fadeTime
+      }
+
+      // Convert to 16-bit PCM
+      const pcmSample = Math.max(-32767, Math.min(32767, sample * 32767))
+      view.setInt16(44 + i * 2, Math.floor(pcmSample), true)
     }
 
     const blob = new Blob([buffer], { type: "audio/wav" })

@@ -251,29 +251,52 @@ const currentSource =
     if (!currentSource || !audioRef.current) return
 
     setIsSourceTesting(true)
+    console.log("Testing audio source:", currentSource.description, currentSource.url)
+    
     try {
       // Create a test audio element
-      const testAudio = new Audio(currentSource.url)
-      testAudio.volume = 0.1
+      const testAudio = new Audio()
+      testAudio.volume = 0.3
+      testAudio.crossOrigin = "anonymous"
+
+      // Add event listeners for debugging
+      testAudio.addEventListener('loadstart', () => console.log("Test: Load started"))
+      testAudio.addEventListener('canplay', () => console.log("Test: Can play"))
+      testAudio.addEventListener('play', () => console.log("Test: Playing"))
+      testAudio.addEventListener('error', (e) => console.error("Test: Error", e))
+
+      testAudio.src = currentSource.url
 
       await new Promise((resolve, reject) => {
-        testAudio.oncanplay = resolve
-        testAudio.onerror = reject
+        const timeout = setTimeout(() => reject(new Error("Timeout loading audio")), 5000)
+        testAudio.oncanplay = () => {
+          clearTimeout(timeout)
+          resolve(void 0)
+        }
+        testAudio.onerror = () => {
+          clearTimeout(timeout)
+          reject(new Error("Audio load error"))
+        }
         testAudio.load()
       })
 
-      // Play for 1 second
+      // Play for 2 seconds
+      console.log("Starting test playback...")
       await testAudio.play()
+      
       setTimeout(() => {
         testAudio.pause()
         testAudio.src = ""
-      }, 1000)
+        console.log("Test playback completed")
+      }, 2000)
 
       setAudioError(null)
-      alert(`✅ Source test successful!\n${currentSource.description}`)
+      console.log("✅ Audio test successful!")
+      alert(`✅ Source test successful!\n${currentSource.description}\nCheck console for detailed logs.`)
     } catch (error: any) {
       console.error("Source test failed:", error)
       setAudioError(`Source test failed: ${error.message}`)
+      alert(`❌ Source test failed: ${error.message}\nCheck console for details.`)
     } finally {
       setIsSourceTesting(false)
     }

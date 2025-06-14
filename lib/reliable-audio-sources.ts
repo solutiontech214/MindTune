@@ -51,6 +51,13 @@ export function generateReliableAudioSources(): ReliableAudioTrack[] {
           generated: true,
         },
         {
+          url: audioGenerator.generateTestTone(30, 440),
+          format: "wav",
+          quality: "medium",
+          description: "Test tone (440Hz for 30 seconds)",
+          generated: true,
+        },
+        {
           url: audioGenerator.generateSilentAudio(300),
           format: "wav",
           quality: "low",
