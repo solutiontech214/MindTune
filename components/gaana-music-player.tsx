@@ -81,7 +81,7 @@ const currentSource =
 
   // Handle play/pause with proper promise management
   const handlePlayPause = useCallback(async () => {
-    if (!audioRef.current || !currentSource) return
+    if (!audioRef.current) return
 
     try {
       if (isPlaying) {
@@ -97,12 +97,21 @@ const currentSource =
       console.error("Playback error:", error)
       setAudioError(`Playback failed: ${error.message}`)
 
-      // Try next source if available
-      if (currentTrack && currentSourceIndex < currentTrack.sources.length - 1) {
-        setCurrentSourceIndex((prev) => prev + 1)
+      // Try alternative audio source
+      if (audioRef.current) {
+        const fallbackUrl = 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
+        audioRef.current.src = fallbackUrl
+        audioRef.current.load()
+        
+        try {
+          await audioRef.current.play()
+          setAudioError(null)
+        } catch (fallbackError) {
+          console.error("Fallback audio also failed:", fallbackError)
+        }
       }
     }
-  }, [isPlaying, currentSource, hasUserInteracted, currentTrack, currentSourceIndex])
+  }, [isPlaying, hasUserInteracted])
 
   // Sync with external play state
   useEffect(() => {
@@ -242,29 +251,52 @@ const currentSource =
     if (!currentSource || !audioRef.current) return
 
     setIsSourceTesting(true)
+    console.log("Testing audio source:", currentSource.description, currentSource.url)
+    
     try {
       // Create a test audio element
-      const testAudio = new Audio(currentSource.url)
-      testAudio.volume = 0.1
+      const testAudio = new Audio()
+      testAudio.volume = 0.3
+      testAudio.crossOrigin = "anonymous"
+
+      // Add event listeners for debugging
+      testAudio.addEventListener('loadstart', () => console.log("Test: Load started"))
+      testAudio.addEventListener('canplay', () => console.log("Test: Can play"))
+      testAudio.addEventListener('play', () => console.log("Test: Playing"))
+      testAudio.addEventListener('error', (e) => console.error("Test: Error", e))
+
+      testAudio.src = currentSource.url
 
       await new Promise((resolve, reject) => {
-        testAudio.oncanplay = resolve
-        testAudio.onerror = reject
+        const timeout = setTimeout(() => reject(new Error("Timeout loading audio")), 5000)
+        testAudio.oncanplay = () => {
+          clearTimeout(timeout)
+          resolve(void 0)
+        }
+        testAudio.onerror = () => {
+          clearTimeout(timeout)
+          reject(new Error("Audio load error"))
+        }
         testAudio.load()
       })
 
-      // Play for 1 second
+      // Play for 2 seconds
+      console.log("Starting test playback...")
       await testAudio.play()
+      
       setTimeout(() => {
         testAudio.pause()
         testAudio.src = ""
-      }, 1000)
+        console.log("Test playback completed")
+      }, 2000)
 
       setAudioError(null)
-      alert(`✅ Source test successful!\n${currentSource.description}`)
+      console.log("✅ Audio test successful!")
+      alert(`✅ Source test successful!\n${currentSource.description}\nCheck console for detailed logs.`)
     } catch (error: any) {
       console.error("Source test failed:", error)
       setAudioError(`Source test failed: ${error.message}`)
+      alert(`❌ Source test failed: ${error.message}\nCheck console for details.`)
     } finally {
       setIsSourceTesting(false)
     }

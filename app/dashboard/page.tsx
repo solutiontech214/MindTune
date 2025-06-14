@@ -423,6 +423,7 @@ export default function DashboardPage() {
                               fill={dataPoint?.source === "camera" ? "#f59e0b" : "#7f55b1"}
                               stroke={dataPoint?.source === "camera" ? "#f59e0b" : "#7f55b1"}
                               strokeWidth={2}
+                              key={`stress-dot-${dataPoint.timestamp}`} // Added key here
                             />
                           )
                         }}
@@ -488,6 +489,7 @@ export default function DashboardPage() {
                               fill={dataPoint?.source === "camera" ? "#f59e0b" : "#f49bab"}
                               stroke={dataPoint?.source === "camera" ? "#f59e0b" : "#f49bab"}
                               strokeWidth={2}
+                              key={`mood-dot-${dataPoint.timestamp}`} // Added key here
                             />
                           )
                         }}
@@ -559,6 +561,7 @@ export default function DashboardPage() {
                             fill={dataPoint?.source === "camera" ? "#f59e0b" : "#7f55b1"}
                             stroke={dataPoint?.source === "camera" ? "#f59e0b" : "#7f55b1"}
                             strokeWidth={2}
+                            key={`stress-line-dot-${dataPoint.timestamp}`} // Added key here
                           />
                         )
                       }}
@@ -579,6 +582,7 @@ export default function DashboardPage() {
                             fill={dataPoint?.source === "camera" ? "#f59e0b" : "#f49bab"}
                             stroke={dataPoint?.source === "camera" ? "#f59e0b" : "#f49bab"}
                             strokeWidth={2}
+                            key={`mood-line-dot-${dataPoint.timestamp}`} // Added key here
                           />
                         )
                       }}
@@ -599,6 +603,7 @@ export default function DashboardPage() {
                             fill={dataPoint?.source === "camera" ? "#f59e0b" : "#f97316"}
                             stroke={dataPoint?.source === "camera" ? "#f59e0b" : "#f97316"}
                             strokeWidth={2}
+                            key={`anxiety-line-dot-${dataPoint.timestamp}`} // Added key here
                           />
                         )
                       }}
@@ -609,7 +614,18 @@ export default function DashboardPage() {
                       dataKey="sleepQuality"
                       stroke="#9b7ebd"
                       strokeWidth={3}
-                      dot={{ fill: "#9b7ebd", strokeWidth: 2, r: 3 }}
+                      dot={(props) => {
+                        return (
+                          <circle
+                            cx={props.cx}
+                            cy={props.cy}
+                            r={3}
+                            fill="#9b7ebd"
+                            strokeWidth={2}
+                            key={`sleep-line-dot-${props.payload.timestamp}`} // Added key here
+                          />
+                        )
+                      }}
                       activeDot={{ r: 5, stroke: "#9b7ebd", strokeWidth: 2 }}
                     />
                   </LineChart>
