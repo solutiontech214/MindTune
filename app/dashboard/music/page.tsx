@@ -45,20 +45,7 @@ interface AIRecommendation {
   score: number
 }
 
-// Mock user for development
-const mockUser: User = {
-  id: 1,
-  first_name: "Demo",
-  last_name: "User",
-  email: "demo@mindtune.com",
-  password_hash: "",
-  age_range: "25-35",
-  created_at: new Date(),
-  updated_at: new Date(),
-  is_active: true,
-  email_verified: true,
-  subscribe_newsletter: true,
-}
+
 
 export default function MusicTherapyPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -89,7 +76,7 @@ export default function MusicTherapyPage() {
   // Add a ref to track if we're currently switching tracks
   const [isSwitchingTrack, setIsSwitchingTrack] = useState(false)
 
-  // Get current user with fallback to mock user
+  // Get current user - requires real authentication
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -98,12 +85,12 @@ export default function MusicTherapyPage() {
           const data = await response.json()
           setUser(data.user)
         } else {
-          console.log("Using mock user for development")
-          setUser(mockUser)
+          console.log("User not authenticated")
+          setUser(null)
         }
       } catch (error) {
         console.error("Error fetching user:", error)
-        setUser(mockUser)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }

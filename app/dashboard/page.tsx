@@ -65,20 +65,7 @@ const generateInitialData = (): ProgressDataPoint[] => {
   return data
 }
 
-// Mock user for development
-const mockUser: User = {
-  id: 1,
-  first_name: "Demo",
-  last_name: "User",
-  email: "demo@mindtune.com",
-  password_hash: "",
-  age_range: "25-35",
-  created_at: new Date(),
-  updated_at: new Date(),
-  is_active: true,
-  email_verified: true,
-  subscribe_newsletter: true,
-}
+
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
@@ -157,25 +144,22 @@ export default function DashboardPage() {
     return () => clearInterval(interval)
   }, [])
 
-  // Get current user with fallback to mock user
+  // Get current user - requires real authentication
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Try to fetch user from API
         const response = await fetch("/api/user")
 
         if (response.ok) {
           const data = await response.json()
           setUser(data.user)
         } else {
-          // Fallback to mock user for development
-          console.log("Using mock user for development")
-          setUser(mockUser)
+          console.log("User not authenticated")
+          setUser(null)
         }
       } catch (error) {
         console.error("Error fetching user:", error)
-        // Fallback to mock user
-        setUser(mockUser)
+        setUser(null)
       } finally {
         setIsLoading(false)
       }
