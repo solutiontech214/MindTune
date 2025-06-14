@@ -34,18 +34,6 @@ export interface GaanaPlaylist {
   artwork: string
 }
 
-// Define reliable audio sources
-const reliableAudioSources = {
-  meditation_1: "https://sample-music.netlify.app/meditation.mp3",
-  meditation_2: "https://sample-music.netlify.app/meditation2.mp3",
-  devotional_1: "https://sample-music.netlify.app/devotional.mp3",
-  classical_1: "https://sample-music.netlify.app/classical.mp3",
-  energetic_1: "https://sample-music.netlify.app/upbeat.mp3",
-  calm_1: "https://sample-music.netlify.app/calm.mp3",
-  spiritual_1: "https://sample-music.netlify.app/spiritual.mp3",
-  healing_1: "https://sample-music.netlify.app/healing.mp3"
-}
-
 class GaanaAPI {
   private spotifyClientId ="021525f6033a4000930ce7cfda86e283" // Replace with actual client ID
   private spotifyClientSecret = "28af6887f55845e98d20167cb2aaabc5" // Replace with actual secret
@@ -75,7 +63,7 @@ class GaanaAPI {
       const data = await response.json()
       this.spotifyAccessToken = data.access_token
       this.tokenExpiry = Date.now() + (data.expires_in * 1000)
-
+      
       return this.spotifyAccessToken
     } catch (error) {
       console.error('Error getting Spotify token:', error)
@@ -88,13 +76,13 @@ class GaanaAPI {
   async searchTracks(query: string, limit = 20): Promise<GaanaSearchResult> {
     try {
       const token = await this.getSpotifyToken()
-
+      
       if (token === 'demo_token') {
         return this.getDemoTracks(query, limit)
       }
 
       const searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}&market=IN`
-
+      
       const response = await fetch(searchUrl, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -118,20 +106,20 @@ class GaanaAPI {
     try {
       // For demo purposes, return working audio URLs
       const demoStreams: { [key: string]: string } = {
-        'meditation_1': reliableAudioSources.meditation_1,
-        'meditation_2': reliableAudioSources.meditation_2,
-        'devotional_1': reliableAudioSources.devotional_1,
-        'classical_1': reliableAudioSources.classical_1,
-        'energetic_1': reliableAudioSources.energetic_1,
-        'calm_1': reliableAudioSources.calm_1,
-        'spiritual_1': reliableAudioSources.spiritual_1,
-        'healing_1': reliableAudioSources.healing_1
+        'meditation_1': 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+        'meditation_2': 'https://sample-music.netlify.app/meditation.mp3',
+        'devotional_1': 'https://www.soundjay.com/misc/sounds/bell-ringing-06.wav',
+        'classical_1': 'https://sample-music.netlify.app/classical.mp3',
+        'energetic_1': 'https://sample-music.netlify.app/upbeat.mp3',
+        'calm_1': 'https://www.soundjay.com/misc/sounds/bell-ringing-03.wav',
+        'spiritual_1': 'https://sample-music.netlify.app/spiritual.mp3',
+        'healing_1': 'https://www.soundjay.com/misc/sounds/bell-ringing-04.wav'
       }
 
-      return demoStreams[trackId] || reliableAudioSources.meditation_1
+      return demoStreams[trackId] || 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
     } catch (error) {
       console.error("Error getting stream URL:", error)
-      return reliableAudioSources.meditation_1
+      return 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
     }
   }
 
@@ -153,8 +141,8 @@ class GaanaAPI {
           album: "Rockstar",
           duration: 428,
           artwork: "https://picsum.photos/300/300?random=11",
-          stream_url: reliableAudioSources.energetic_1,
-          preview_url: reliableAudioSources.energetic_1,
+          stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
+          preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
           external_urls: {},
           genre: "Sufi",
           language: "Hindi",
@@ -167,8 +155,8 @@ class GaanaAPI {
           album: "Sacred Sounds",
           duration: 480,
           artwork: "https://picsum.photos/300/300?random=12",
-          stream_url: reliableAudioSources.meditation_1,
-          preview_url: reliableAudioSources.meditation_1,
+          stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+          preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
           external_urls: {},
           genre: "Meditation",
           language: "Sanskrit",
@@ -218,7 +206,7 @@ class GaanaAPI {
       album: item.album.name,
       duration: Math.floor(item.duration_ms / 1000),
       artwork: item.album.images[0]?.url || "/placeholder.svg?height=300&width=300",
-      stream_url: item.preview_url || reliableAudioSources.meditation_1,
+      stream_url: item.preview_url || 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
       preview_url: item.preview_url,
       external_urls: {
         spotify: item.external_urls.spotify
@@ -244,119 +232,119 @@ class GaanaAPI {
         title: "Om Meditation",
         artist: "Spiritual Voices",
         album: "Sacred Sounds",
-        duration: 22,
+        duration: 480,
         artwork: "https://picsum.photos/300/300?random=1",
-        stream_url: reliableAudioSources.meditation_1,
-        preview_url: reliableAudioSources.meditation_1,
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
         external_urls: {},
         genre: "Meditation",
         language: "Sanskrit",
         popularity: 85
       },
       {
-          track_id: "meditation_2",
-          title: "Tibetan Bowls Healing",
-          artist: "Healing Sounds",
-          album: "Chakra Meditation",
-          duration: 25,
-          artwork: "https://picsum.photos/300/300?random=2",
-          stream_url: reliableAudioSources.meditation_2,
-          preview_url: reliableAudioSources.meditation_2,
-          external_urls: {},
-          genre: "Meditation",
-          language: "Instrumental",
-          popularity: 78
-        },
-        {
-          track_id: "devotional_1",
-          title: "Hanuman Chalisa",
-          artist: "Hariharan",
-          album: "Divine Chants",
-          duration: 28,
-          artwork: "https://picsum.photos/300/300?random=3",
-          stream_url: reliableAudioSources.devotional_1,
-          preview_url: reliableAudioSources.devotional_1,
-          external_urls: {},
-          genre: "Devotional",
-          language: "Hindi",
-          popularity: 92
-        },
-        {
-          track_id: "classical_1",
-          title: "Raga Bhairav",
-          artist: "Pandit Ravi Shankar",
-          album: "Morning Ragas",
-          duration: 35,
-          artwork: "https://picsum.photos/300/300?random=4",
-          stream_url: reliableAudioSources.classical_1,
-          preview_url: reliableAudioSources.classical_1,
-          external_urls: {},
-          genre: "Classical",
-          language: "Instrumental",
-          popularity: 88
-        },
-        {
-          track_id: "energetic_1",
-          title: "Kun Faya Kun",
-          artist: "A.R. Rahman",
-          album: "Rockstar",
-          duration: 20,
-          artwork: "https://picsum.photos/300/300?random=5",
-          stream_url: reliableAudioSources.energetic_1,
-          preview_url: reliableAudioSources.energetic_1,
-          external_urls: {},
-          genre: "Sufi",
-          language: "Hindi",
-          popularity: 95
-        },
-        {
-          track_id: "calm_1",
-          title: "Peaceful Flute",
-          artist: "Pandit Hariprasad Chaurasia",
-          album: "Serene Melodies",
-          duration: 40,
-          artwork: "https://picsum.photos/300/300?random=6",
-          stream_url: reliableAudioSources.calm_1,
-          preview_url: reliableAudioSources.calm_1,
-          external_urls: {},
-          genre: "Instrumental",
-          language: "Instrumental",
-          popularity: 82
-        },
-        {
-          track_id: "spiritual_1",
-          title: "Gayatri Mantra",
-          artist: "Anuradha Paudwal",
-          album: "Sacred Mantras",
-          duration: 32,
-          artwork: "https://picsum.photos/300/300?random=7",
-          stream_url: reliableAudioSources.spiritual_1,
-          preview_url: reliableAudioSources.spiritual_1,
-          external_urls: {},
-          genre: "Devotional",
-          language: "Sanskrit",
-          popularity: 90
-        },
-        {
-          track_id: "healing_1",
-          title: "Nature Sounds Meditation",
-          artist: "Ambient Collective",
-          album: "Natural Healing",
-          duration: 45,
-          artwork: "https://picsum.photos/300/300?random=8",
-          stream_url: reliableAudioSources.healing_1,
-          preview_url: reliableAudioSources.healing_1,
-          external_urls: {},
-          genre: "Ambient",
-          language: "Instrumental",
-          popularity: 75
-        }
+        track_id: "meditation_2",
+        title: "Tibetan Bowls Healing",
+        artist: "Healing Sounds",
+        album: "Chakra Meditation",
+        duration: 720,
+        artwork: "https://picsum.photos/300/300?random=2",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-04.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-04.wav",
+        external_urls: {},
+        genre: "Meditation",
+        language: "Instrumental",
+        popularity: 78
+      },
+      {
+        track_id: "devotional_1",
+        title: "Hanuman Chalisa",
+        artist: "Hariharan",
+        album: "Divine Chants",
+        duration: 435,
+        artwork: "https://picsum.photos/300/300?random=3",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-06.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-06.wav",
+        external_urls: {},
+        genre: "Devotional",
+        language: "Hindi",
+        popularity: 92
+      },
+      {
+        track_id: "classical_1",
+        title: "Raga Bhairav",
+        artist: "Pandit Ravi Shankar",
+        album: "Morning Ragas",
+        duration: 920,
+        artwork: "https://picsum.photos/300/300?random=4",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-08.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-08.wav",
+        external_urls: {},
+        genre: "Classical",
+        language: "Instrumental",
+        popularity: 88
+      },
+      {
+        track_id: "energetic_1",
+        title: "Kun Faya Kun",
+        artist: "A.R. Rahman",
+        album: "Rockstar",
+        duration: 428,
+        artwork: "https://picsum.photos/300/300?random=5",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-02.wav",
+        external_urls: {},
+        genre: "Sufi",
+        language: "Hindi",
+        popularity: 95
+      },
+      {
+        track_id: "calm_1",
+        title: "Peaceful Flute",
+        artist: "Pandit Hariprasad Chaurasia",
+        album: "Serene Melodies",
+        duration: 600,
+        artwork: "https://picsum.photos/300/300?random=6",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-03.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-03.wav",
+        external_urls: {},
+        genre: "Instrumental",
+        language: "Instrumental",
+        popularity: 82
+      },
+      {
+        track_id: "spiritual_1",
+        title: "Gayatri Mantra",
+        artist: "Anuradha Paudwal",
+        album: "Sacred Mantras",
+        duration: 360,
+        artwork: "https://picsum.photos/300/300?random=7",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-07.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-07.wav",
+        external_urls: {},
+        genre: "Devotional",
+        language: "Sanskrit",
+        popularity: 90
+      },
+      {
+        track_id: "healing_1",
+        title: "Nature Sounds Meditation",
+        artist: "Ambient Collective",
+        album: "Natural Healing",
+        duration: 1200,
+        artwork: "https://picsum.photos/300/300?random=8",
+        stream_url: "https://www.soundjay.com/misc/sounds/bell-ringing-01.wav",
+        preview_url: "https://www.soundjay.com/misc/sounds/bell-ringing-01.wav",
+        external_urls: {},
+        genre: "Ambient",
+        language: "Instrumental",
+        popularity: 75
+      }
     ]
 
     // Filter tracks based on query
     let filteredTracks = allDemoTracks
     const queryLower = query.toLowerCase()
-
+    
     if (queryLower.includes('meditation') || queryLower.includes('calm')) {
       filteredTracks = allDemoTracks.filter(track => 
         track.genre.toLowerCase().includes('meditation') || 
