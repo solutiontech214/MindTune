@@ -101,7 +101,7 @@ export class AudioGenerator {
         const chirpFreq = 1000 + Math.random() * 800
         birdChirpPhase = chirpFreq
       }
-      
+
       if (birdChirpPhase > 0) {
         sample += Math.sin(2 * Math.PI * birdChirpPhase * time) * 0.15 * Math.exp(-time * 3)
         birdChirpPhase *= 0.999 // Gradually reduce chirp frequency
@@ -146,7 +146,7 @@ export class AudioGenerator {
     // Generate simple sine wave tone
     for (let i = 0; i < numSamples; i++) {
       const time = i / this.sampleRate
-      
+
       // Simple sine wave with gentle volume
       let sample = Math.sin(2 * Math.PI * frequency * time) * 0.3
 
@@ -194,3 +194,131 @@ export class AudioGenerator {
 }
 
 export const audioGenerator = new AudioGenerator()
+
+
+export function generateAudioBuffer(
+  context: AudioContext,
+  frequency: number = 440,
+  duration: number = 2,
+  type: OscillatorType = 'sine'
+): AudioBuffer {
+  const sampleRate = context.sampleRate
+  const frameCount = sampleRate * duration
+  const buffer = context.createBuffer(2, frameCount, sampleRate) // Stereo
+
+  for (let channel = 0; channel < 2; channel++) {
+    const channelData = buffer.getChannelData(channel)
+
+    for (let i = 0; i < frameCount; i++) {
+      const t = i / sampleRate
+      let sample = 0
+
+      switch (type) {
+        case 'sine':
+          sample = Math.sin(2 * Math.PI * frequency * t)
+          break
+        case 'square':
+          sample = Math.sin(2 * Math.PI * frequency * t) > 0 ? 1 : -1
+          break
+        case 'sawtooth':
+          sample = 2 * (frequency * t - Math.floor(frequency * t + 0.5))
+          break
+        case 'triangle':
+          sample = 2 * Math.abs(2 * (frequency * t - Math.floor(frequency * t + 0.5))) - 1
+          break
+      }
+
+      // Apply envelope for smooth start/end
+      const envelope = Math.min(t * 5, (duration - t) * 5, 1)
+      channelData[i] = sample * envelope * 0.2 // Reduce volume
+    }
+  }
+
+  return buffer
+}
+
+// Generate meditation-style audio with multiple harmonics
+export function generateMeditationAudio(context: AudioContext, duration: number = 30): AudioBuffer {
+  const sampleRate = context.sampleRate
+  const frameCount = sampleRate * duration
+  const buffer = context.createBuffer(2, frameCount, sampleRate) // Stereo
+
+  for (let channel = 0; channel < 2; channel++) {
+    const channelData = buffer.getChannelData(channel)
+
+    for (let i = 0; i < frameCount; i++) {
+      const t = i / sampleRate
+
+      // Combine multiple harmonics for rich sound
+      let sample = 
+        0.4 * Math.sin(2 * Math.PI * 220 * t) +  // Base frequency
+        0.3 * Math.sin(2 * Math.PI * 330 * t) +  // Perfect fifth
+        0.2 * Math.sin(2 * Math.PI * 440 * t) +  // Octave
+        0.1 * Math.sin(2 * Math.PI * 660 * t)    // Higher harmonic
+
+      // Apply slow amplitude modulation for breathing effect
+      const modulation = 0.5 + 0.5 * Math.sin(2 * Math.PI * 0.1 * t)
+
+      // Apply envelope
+      const envelope = Math.min(t * 2, (duration - t) * 2, 1)
+
+      // Add slight stereo variation
+      const stereoVariation = channel === 0 ? 1 : 0.95
+
+      channelData[i] = sample * envelope * modulation * 0.15 * stereoVariation
+    }
+  }
+
+  return buffer
+}
+
+// Convert AudioBuffer to data URL for use as audio source
+export function audioBufferToDataURL(buffer: AudioBuffer): string {
+  const length = buffer.length
+  const channels = buffer.numberOfChannels
+  const sampleRate = buffer.sampleRate
+
+  // Create WAV file data
+  const arrayBuffer = new ArrayBuffer(44 + length * channels * 2)
+  const view = new DataView(arrayBuffer)
+
+  // WAV header
+  const writeString = (offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i))
+    }
+  }
+
+  writeString(0, 'RIFF')
+  view.setUint32(4, 36 + length * channels * 2, true)
+  writeString(8, 'WAVE')
+  writeString(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, channels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, sampleRate * channels * 2, true)
+  view.setUint16(32, channels * 2, true)
+  view.setUint16(34, 16, true)
+  writeString(36, 'data')
+  view.setUint32(40, length * channels * 2, true)
+
+  // Convert float samples to 16-bit PCM
+  let offset = 44
+  for (let i = 0; i < length; i++) {
+    for (let channel = 0; channel < channels; channel++) {
+      const sample = Math.max(-1, Math.min(1, buffer.getChannelData(channel)[i]))
+      view.setInt16(offset, sample * 0x7FFF, true)
+      offset += 2
+    }
+  }
+
+  // Convert to base64 data URL
+  const bytes = new Uint8Array(arrayBuffer)
+  let binary = ''
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i])
+  }
+
+  return 'data:audio/wav;base64,' + btoa(binary)
+}
