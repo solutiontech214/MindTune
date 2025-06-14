@@ -1,3 +1,4 @@
+
 import { audioGenerator } from "./audio-generator"
 
 export interface ReliableAudioTrack {
@@ -58,8 +59,6 @@ export function generateReliableAudioSources(): { [key: string]: string } {
 
     trackConfigs.forEach(config => {
       try {
-        //const buffer = generateAudioBuffer(audioContext, config.frequency, config.duration, config.type)
-        //sources[config.id] = audioBufferToDataURL(buffer)
         sources[config.id] = createToneAudioDataURL(config.frequency, config.duration)
       } catch (error) {
         console.warn(`Failed to generate audio for ${config.id}:`, error)
@@ -239,15 +238,203 @@ function arrayBufferToBase64( buffer: ArrayBuffer ) {
   return window.btoa( binary );
 }
 
+// Generate reliable audio tracks array
+function generateReliableAudioTracks(): ReliableAudioTrack[] {
+  const audioSources = generateReliableAudioSources()
+  
+  return [
+    {
+      track_id: "meditation_1",
+      title: "Om Meditation",
+      artist: "Spiritual Voices",
+      genre: "Meditation",
+      language: "Sanskrit",
+      duration: 30,
+      artwork: "https://picsum.photos/300/300?random=1",
+      sources: [{
+        url: audioSources.meditation_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated meditation tone at 220Hz",
+        generated: true
+      }],
+      mood: "calm",
+      category: "meditation"
+    },
+    {
+      track_id: "meditation_2",
+      title: "Tibetan Bowls Healing",
+      artist: "Healing Sounds",
+      genre: "Meditation",
+      language: "Instrumental",
+      duration: 25,
+      artwork: "https://picsum.photos/300/300?random=2",
+      sources: [{
+        url: audioSources.meditation_2,
+        format: "wav",
+        quality: "high",
+        description: "Generated healing tone at 174Hz",
+        generated: true
+      }],
+      mood: "peaceful",
+      category: "meditation"
+    },
+    {
+      track_id: "devotional_1",
+      title: "Hanuman Chalisa",
+      artist: "Hariharan",
+      genre: "Devotional",
+      language: "Hindi",
+      duration: 28,
+      artwork: "https://picsum.photos/300/300?random=3",
+      sources: [{
+        url: audioSources.devotional_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated spiritual tone at 432Hz",
+        generated: true
+      }],
+      mood: "peaceful",
+      category: "devotional"
+    },
+    {
+      track_id: "classical_1",
+      title: "Raga Bhairav",
+      artist: "Pandit Ravi Shankar",
+      genre: "Classical",
+      language: "Instrumental",
+      duration: 35,
+      artwork: "https://picsum.photos/300/300?random=4",
+      sources: [{
+        url: audioSources.classical_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated classical tone at 528Hz",
+        generated: true
+      }],
+      mood: "relaxed",
+      category: "classical"
+    },
+    {
+      track_id: "energetic_1",
+      title: "Kun Faya Kun",
+      artist: "A.R. Rahman",
+      genre: "Sufi",
+      language: "Hindi",
+      duration: 20,
+      artwork: "https://picsum.photos/300/300?random=5",
+      sources: [{
+        url: audioSources.energetic_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated energetic tone at 741Hz",
+        generated: true
+      }],
+      mood: "energetic",
+      category: "spiritual"
+    },
+    {
+      track_id: "calm_1",
+      title: "Peaceful Flute",
+      artist: "Pandit Hariprasad Chaurasia",
+      genre: "Instrumental",
+      language: "Instrumental",
+      duration: 40,
+      artwork: "https://picsum.photos/300/300?random=6",
+      sources: [{
+        url: audioSources.calm_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated calming tone at 396Hz",
+        generated: true
+      }],
+      mood: "calm",
+      category: "relaxation"
+    },
+    {
+      track_id: "spiritual_1",
+      title: "Gayatri Mantra",
+      artist: "Anuradha Paudwal",
+      genre: "Devotional",
+      language: "Sanskrit",
+      duration: 32,
+      artwork: "https://picsum.photos/300/300?random=7",
+      sources: [{
+        url: audioSources.spiritual_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated spiritual tone at 852Hz",
+        generated: true
+      }],
+      mood: "peaceful",
+      category: "spiritual"
+    },
+    {
+      track_id: "healing_1",
+      title: "Nature Sounds Meditation",
+      artist: "Ambient Collective",
+      genre: "Ambient",
+      language: "Instrumental",
+      duration: 45,
+      artwork: "https://picsum.photos/300/300?random=8",
+      sources: [{
+        url: audioSources.healing_1,
+        format: "wav",
+        quality: "high",
+        description: "Generated healing tone at 963Hz",
+        generated: true
+      }],
+      mood: "calm",
+      category: "ambient"
+    },
+    {
+      track_id: "nature_1",
+      title: "Forest Sounds",
+      artist: "Nature Collective",
+      genre: "Nature",
+      language: "Instrumental",
+      duration: 60,
+      artwork: "https://picsum.photos/300/300?random=9",
+      sources: [{
+        url: audioSources.calm_1, // Reuse calm audio
+        format: "wav",
+        quality: "high",
+        description: "Generated nature sounds",
+        generated: true
+      }],
+      mood: "calm",
+      category: "nature"
+    },
+    {
+      track_id: "sleep_1",
+      title: "Deep Sleep Waves",
+      artist: "Sleep Collective",
+      genre: "Sleep",
+      language: "Instrumental",
+      duration: 90,
+      artwork: "https://picsum.photos/300/300?random=10",
+      sources: [{
+        url: audioSources.meditation_1, // Reuse meditation audio
+        format: "wav",
+        quality: "high",
+        description: "Generated sleep-inducing tones",
+        generated: true
+      }],
+      mood: "calm",
+      category: "sleep"
+    }
+  ]
+}
+
 export function getReliableAudioTracks(): ReliableAudioTrack[] {
   if (!cachedTracks) {
-    cachedTracks = generateReliableAudioSources()
+    cachedTracks = generateReliableAudioTracks()
   }
   return cachedTracks
 }
 
 export function refreshAudioSources(): ReliableAudioTrack[] {
-  cachedTracks = generateReliableAudioSources()
+  cachedTracks = generateReliableAudioTracks()
   return cachedTracks
 }
 
@@ -262,9 +449,9 @@ export function getTestAudioSource(): AudioSource {
 }
 
 // Export the reliable audio tracks array
-export const reliableAudioTracks = generateReliableAudioSources()
+export const reliableAudioTracks = generateReliableAudioTracks()
 
 // Get fresh reliable audio tracks
 export function getReliableAudioTracksSync(): ReliableAudioTrack[] {
-  return generateReliableAudioSources()
+  return generateReliableAudioTracks()
 }
