@@ -174,10 +174,10 @@ export default function MusicTherapyPage() {
       }
 
       const recommendations = musicRecommendationEngine.generateRecommendations(userState)
-      
+
       // Convert to AI recommendations with Gaana tracks
       const aiRecs: AIRecommendation[] = []
-      
+
       for (const rec of recommendations) {
         const searchQueries = [
           "meditation peaceful calm",
@@ -189,10 +189,10 @@ export default function MusicTherapyPage() {
           "instrumental flute",
           "yoga meditation"
         ]
-        
+
         const randomQuery = searchQueries[Math.floor(Math.random() * searchQueries.length)]
         const searchResult = await gaanaAPI.searchTracks(randomQuery, 8)
-        
+
         if (searchResult.tracks.length > 0) {
           aiRecs.push({
             category: rec.name,
@@ -587,7 +587,7 @@ export default function MusicTherapyPage() {
                 <span>Refresh</span>
               </Button>
             </div>
-            
+
             {aiRecommendations.length > 0 ? (
               <div className="space-y-8">
                 {aiRecommendations.map((recommendation, index) => (
@@ -621,7 +621,7 @@ export default function MusicTherapyPage() {
                         </p>
                       </CardContent>
                     </Card>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                       {recommendation.tracks.map((track) => (
                         <TrackCard key={`${recommendation.category}_${track.track_id}`} track={track} trackList={recommendation.tracks} />
