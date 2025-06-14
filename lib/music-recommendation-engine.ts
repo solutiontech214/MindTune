@@ -38,6 +38,16 @@ export class MusicRecommendationEngine {
       })
     }
 
+    if (userState.stressLevel >= 4 && userState.stressLevel < 7) {
+      categories.push({
+        name: "Moderate Stress Management",
+        description: "Gentle music to ease moderate stress",
+        tracks: this.getTracksByCategory(["meditation", "relaxation"]),
+        score: 85,
+        reasoning: "Moderate stress - using gentle relaxation techniques",
+      })
+    }
+
     // Mood-based recommendations
     switch (userState.mood) {
       case "anxious":
@@ -67,6 +77,24 @@ export class MusicRecommendationEngine {
           reasoning: "High energy - channeling into productive focus",
         })
         break
+      case "calm":
+        categories.push({
+          name: "Maintain Calmness",
+          description: "Peaceful sounds to maintain your calm state",
+          tracks: this.getTracksByMood(["calm", "peaceful"]),
+          score: 82,
+          reasoning: "Already calm - maintaining peaceful state",
+        })
+        break
+      case "neutral":
+        categories.push({
+          name: "Balanced Wellness",
+          description: "Balanced music for overall well-being",
+          tracks: this.getTracksByCategory(["ambient", "nature"]),
+          score: 75,
+          reasoning: "Neutral mood - balanced approach to wellness",
+        })
+        break
     }
 
     // Time-based recommendations
@@ -92,8 +120,27 @@ export class MusicRecommendationEngine {
       })
     }
 
+    // Additional wellness categories
+    categories.push({
+      name: "Daily Mindfulness",
+      description: "Mindful music for everyday wellness",
+      tracks: this.getTracksByCategory(["meditation", "nature"]),
+      score: 70,
+      reasoning: "Regular mindfulness practice for overall mental health",
+    })
+
+    if (userState.stressLevel <= 3) {
+      categories.push({
+        name: "Creative Flow",
+        description: "Inspiring sounds to enhance creativity",
+        tracks: this.getTracksByCategory(["ambient", "relaxation"]),
+        score: 78,
+        reasoning: "Low stress allows for creative exploration",
+      })
+    }
+
     // Sort by score and return top recommendations
-    return categories.sort((a, b) => b.score - a.score).slice(0, 5)
+    return categories.sort((a, b) => b.score - a.score).slice(0, 6)
   }
 
   private getTracksByMood(moods: string[]): ReliableAudioTrack[] {

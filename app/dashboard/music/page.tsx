@@ -21,18 +21,28 @@ import {
   Search,
   TrendingUp,
   Loader2,
+  RefreshCw,
 } from "lucide-react"
 import Link from "next/link"
 import { signOutAction } from "@/app/actions/auth"
 import type { User } from "@/lib/database"
 import { GaanaMusicPlayer } from "@/components/gaana-music-player"
 import { gaanaAPI, type GaanaTrack, formatDuration, getMoodSearchQuery } from "@/lib/gaana-api"
+import { musicRecommendationEngine, type UserMentalState } from "@/lib/music-recommendation-engine"
 
 interface UserMoodData {
   currentMood: number
   currentStress: number
   currentAnxiety: number
   recommendations: string[]
+}
+
+interface AIRecommendation {
+  category: string
+  description: string
+  tracks: GaanaTrack[]
+  reasoning: string
+  score: number
 }
 
 // Mock user for development
@@ -63,6 +73,8 @@ export default function MusicTherapyPage() {
   const [recommendedTracks, setRecommendedTracks] = useState<GaanaTrack[]>([])
   const [trendingTracks, setTrendingTracks] = useState<GaanaTrack[]>([])
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
+  const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([])
+  const [isLoadingAIRecommendations, setIsLoadingAIRecommendations] = useState(false)
   const [userMoodData, setUserMoodData] = useState<UserMoodData>({
     currentMood: 7,
     currentStress: 4,
@@ -104,6 +116,7 @@ export default function MusicTherapyPage() {
   useEffect(() => {
     const loadInitialData = async () => {
       setIsLoadingRecommendations(true)
+      setIsLoadingAIRecommendations(true)
       try {
         // Load mood-based recommendations
         const moodQuery = getMoodSearchQuery(
@@ -117,10 +130,14 @@ export default function MusicTherapyPage() {
         // Load trending tracks
         const trending = await gaanaAPI.getTrendingTracks(10)
         setTrendingTracks(trending)
+
+        // Generate AI recommendations
+        await generateAIRecommendations()
       } catch (error) {
         console.error("Error loading initial music data:", error)
       } finally {
         setIsLoadingRecommendations(false)
+        setIsLoadingAIRecommendations(false)
       }
     }
 
@@ -128,6 +145,70 @@ export default function MusicTherapyPage() {
       loadInitialData()
     }
   }, [isLoading, userMoodData.currentMood, userMoodData.currentStress, userMoodData.currentAnxiety])
+
+  // Generate AI-powered music recommendations
+  const generateAIRecommendations = async () => {
+    try {
+      // Convert mood data to recommendation engine format
+      const currentHour = new Date().getHours()
+      let timeOfDay: "morning" | "afternoon" | "evening" | "night"
+      if (currentHour >= 5 && currentHour < 12) timeOfDay = "morning"
+      else if (currentHour >= 12 && currentHour < 17) timeOfDay = "afternoon"
+      else if (currentHour >= 17 && currentHour < 21) timeOfDay = "evening"
+      else timeOfDay = "night"
+
+      let mood: "anxious" | "calm" | "depressed" | "energetic" | "neutral"
+      if (userMoodData.currentAnxiety >= 7) mood = "anxious"
+      else if (userMoodData.currentMood >= 8) mood = "energetic"
+      else if (userMoodData.currentMood <= 4) mood = "depressed"
+      else if (userMoodData.currentStress <= 3) mood = "calm"
+      else mood = "neutral"
+
+      const userState: UserMentalState = {
+        stressLevel: userMoodData.currentStress,
+        mood: mood,
+        sleepQuality: 7, // Default value
+        timeOfDay: timeOfDay,
+        preferredGenres: ["devotional", "classical", "ambient"],
+        sessionGoal: userMoodData.currentStress >= 6 ? "relaxation" : "focus"
+      }
+
+      const recommendations = musicRecommendationEngine.generateRecommendations(userState)
+      
+      // Convert to AI recommendations with Gaana tracks
+      const aiRecs: AIRecommendation[] = []
+      
+      for (const rec of recommendations) {
+        const searchQueries = [
+          "meditation peaceful calm",
+          "devotional bhajan spiritual",
+          "classical indian raga",
+          "ambient nature sounds",
+          "bollywood romantic",
+          "sufi music healing",
+          "instrumental flute",
+          "yoga meditation"
+        ]
+        
+        const randomQuery = searchQueries[Math.floor(Math.random() * searchQueries.length)]
+        const searchResult = await gaanaAPI.searchTracks(randomQuery, 8)
+        
+        if (searchResult.tracks.length > 0) {
+          aiRecs.push({
+            category: rec.name,
+            description: rec.description,
+            tracks: searchResult.tracks,
+            reasoning: rec.reasoning,
+            score: rec.score
+          })
+        }
+      }
+
+      setAiRecommendations(aiRecs)
+    } catch (error) {
+      console.error("Error generating AI recommendations:", error)
+    }
+  }
 
   // Search functionality
   const handleSearch = async () => {
@@ -226,6 +307,13 @@ export default function MusicTherapyPage() {
 
   const handleTrackEnd = () => {
     handleNext()
+  }
+
+  // Refresh AI recommendations
+  const refreshAIRecommendations = async () => {
+    setIsLoadingAIRecommendations(true)
+    await generateAIRecommendations()
+    setIsLoadingAIRecommendations(false)
   }
 
   const getStressColor = (level: number) => {
@@ -481,10 +569,81 @@ export default function MusicTherapyPage() {
             </CardContent>
           </Card>
 
+          {/* AI Music Recommendations */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                <Brain className="w-6 h-6 text-primary-600" />
+                <span>AI-Powered Music Recommendations</span>
+                {isLoadingAIRecommendations && <Loader2 className="w-5 h-5 animate-spin text-primary-600" />}
+              </h2>
+              <Button
+                onClick={refreshAIRecommendations}
+                disabled={isLoadingAIRecommendations}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingAIRecommendations ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </Button>
+            </div>
+            
+            {aiRecommendations.length > 0 ? (
+              <div className="space-y-8">
+                {aiRecommendations.map((recommendation, index) => (
+                  <div key={index} className="space-y-4">
+                    <Card className="border-0 shadow-lg bg-gradient-to-r from-primary-50 to-secondary-50">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-xl text-primary-700">{recommendation.category}</CardTitle>
+                            <CardDescription className="text-gray-600 mt-1">
+                              {recommendation.description}
+                            </CardDescription>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Score: {recommendation.score}%
+                              </Badge>
+                              <Badge variant="outline" className="text-xs">
+                                {recommendation.tracks.length} tracks
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <Brain className="w-4 h-4" />
+                            <span>AI Generated</span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-600 italic mb-4">
+                          💡 {recommendation.reasoning}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {recommendation.tracks.map((track) => (
+                        <TrackCard key={`${recommendation.category}_${track.track_id}`} track={track} trackList={recommendation.tracks} />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <Card className="border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <Brain className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">Generating AI-powered recommendations based on your mood...</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
           {/* Recommended Tracks */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
-              <span>Recommended for You</span>
+              <span>Quick Recommendations</span>
               {isLoadingRecommendations && <Loader2 className="w-5 h-5 animate-spin text-primary-600" />}
             </h2>
             {recommendedTracks.length > 0 ? (
