@@ -5,7 +5,20 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area } from "recharts"
-import { Heart, TrendingUp, Brain, Activity, Clock, Target } from "lucide-react"
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  Heart,
+  Music,
+  TrendingUp,
+  Users,
+  Activity,
+  Brain,
+  Shield,
+  Gamepad2,
+  BookOpen,
+} from "lucide-react"
 import { signOutAction } from "@/app/actions/auth"
 import type { User } from "@/lib/database"
 import { StressCamera } from "@/components/stress-camera"
@@ -684,7 +697,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
-      
+
       {/* Chatbot Popover */}
       <ChatbotPopover />
     </div>
