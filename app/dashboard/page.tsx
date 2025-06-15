@@ -12,6 +12,7 @@ import { StressCamera } from "@/components/stress-camera"
 import { DailyCheckin } from "@/components/daily-checkin"
 import { MonthlyCheckinCalendar } from "@/components/monthly-checkin-calendar"
 import { ChatbotPopover } from "@/components/chatbot-popover"
+import { GamesDashboard } from "@/components/games-dashboard"
 import Link from "next/link"
 
 interface ProgressDataPoint {
@@ -292,6 +293,11 @@ export default function DashboardPage() {
           {/* Monthly Check-in Calendar */}
           <div className="mb-8">
             <MonthlyCheckinCalendar />
+          </div>
+
+          {/* Games and Activities Dashboard */}
+          <div className="mb-8">
+            <GamesDashboard />
           </div>
 
           {/* Stats Cards */}
