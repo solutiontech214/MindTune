@@ -15,10 +15,17 @@ const nextConfig = {
         "localhost:3001",
         "*.replit.dev",
         "*.repl.co",
+        "*.pike.replit.dev",
         process.env.REPLIT_DEV_DOMAIN,
       ].filter(Boolean),
       bodySizeLimit: "2mb",
     },
+    allowedDevOrigins: [
+      "*.replit.dev",
+      "*.repl.co", 
+      "*.pike.replit.dev",
+      process.env.REPLIT_DEV_DOMAIN,
+    ].filter(Boolean),
   },
   async headers() {
     return [
