@@ -15,6 +15,7 @@ const nextConfig = {
       allowedOrigins: ["*"],
       bodySizeLimit: "2mb",
     },
+    allowedDevOrigins: ["*"],
   },
   async headers() {
     return [
