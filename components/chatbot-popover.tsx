@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -29,6 +29,7 @@ const predefinedResponses: { [key: string]: string } = {
 }
 
 export function ChatbotPopover() {
+  const [mounted, setMounted] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -39,6 +40,10 @@ export function ChatbotPopover() {
   ])
   const [inputValue, setInputValue] = useState("")
   const [isOpen, setIsOpen] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const getBotResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase()
@@ -78,6 +83,10 @@ export function ChatbotPopover() {
     if (e.key === 'Enter') {
       sendMessage()
     }
+  }
+
+  if (!mounted) {
+    return null
   }
 
   return (
