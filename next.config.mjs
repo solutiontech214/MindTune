@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -6,16 +7,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    unoptimized: true,
-  },
   experimental: {
     serverActions: {
       allowedOrigins: [
         "localhost:3001",
         "*.replit.dev",
         "*.repl.co",
+        "*.pike.replit.dev",
         process.env.REPLIT_DEV_DOMAIN,
+        process.env.REPL_SLUG && `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`,
       ].filter(Boolean),
       bodySizeLimit: "2mb",
     },
@@ -28,6 +28,18 @@ const nextConfig = {
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization',
           },
         ],
       },
