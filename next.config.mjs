@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  hostname: process.env.REPLIT_DEV_DOMAIN || 'localhost',
   eslint: {
     ignoreDuringBuilds: true,
   },
