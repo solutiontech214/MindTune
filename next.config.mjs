@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  hostname: process.env.REPLIT_DEV_DOMAIN || 'localhost',
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -12,10 +11,27 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      allowedOrigins: ["*"],
+      allowedOrigins: [
+        "localhost:3001",
+        "*.replit.dev",
+        "*.repl.co",
+        process.env.REPLIT_DEV_DOMAIN,
+      ].filter(Boolean),
       bodySizeLimit: "2mb",
     },
-    allowedDevOrigins: ["*"],
+  },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+        ],
+      },
+    ]
   },
 }
 
