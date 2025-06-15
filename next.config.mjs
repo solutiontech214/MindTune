@@ -1,3 +1,4 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
@@ -14,8 +15,36 @@ const nextConfig = {
       allowedOrigins: ["*"],
       bodySizeLimit: "2mb",
     },
-    allowedDevOrigins: ["*"],
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: "*",
+          },
+          {
+            key: "Access-Control-Allow-Methods", 
+            value: "GET, POST, PUT, DELETE, OPTIONS",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type, Authorization, x-forwarded-host, origin",
+          },
+        ],
+      },
+    ]
+  },
+  // Override the default server-side origin validation for Replit
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: []
+    }
+  }
 }
 
 export default nextConfig
