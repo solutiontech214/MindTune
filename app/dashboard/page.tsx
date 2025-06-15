@@ -11,6 +11,7 @@ import type { User } from "@/lib/database"
 import { StressCamera } from "@/components/stress-camera"
 import { DailyCheckin } from "@/components/daily-checkin"
 import { MonthlyCheckinCalendar } from "@/components/monthly-checkin-calendar"
+import { ChatbotPopover } from "@/components/chatbot-popover"
 import Link from "next/link"
 
 interface ProgressDataPoint {
@@ -677,6 +678,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      
+      {/* Chatbot Popover */}
+      <ChatbotPopover />
     </div>
   )
 }
